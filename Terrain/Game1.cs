@@ -100,6 +100,7 @@ namespace Terrain
        }
         protected override void Update(GameTime gameTime)
         {
+            //input control - ToDo - place in class
             if(Keyboard.GetState().IsKeyDown(Keys.Up))
             {
                 Camera.Position.X += 1.0f;
@@ -157,21 +158,21 @@ namespace Terrain
         protected override void Draw(GameTime gameTime)
         {
             device.Clear(Color.CornflowerBlue);
+            
             /************draw 3d terrain and stuff************************/
             RasterizerState rs = new RasterizerState();
-            //turn off culling
-            //rs.CullMode = CullMode.None;
-
             //set wireframe
             //rs.FillMode = FillMode.WireFrame;
             device.RasterizerState = rs;
 
             //select technique
             effect.CurrentTechnique = effect.Techniques["Colored"];
-            //effect.CurrentTechnique = effect.Techniques["SeasonColoredNoShading"];
+
             effect.CurrentTechnique = effect.Techniques["SeasonColored"];
+            
             //effect.CurrentTechnique = effect.Techniques["TexturedNoShading"];
             //effect.CurrentTechnique = effect.Techniques["Textured"];
+
             //effect.CurrentTechnique = effect.Techniques["PointSprites"];
 
 
@@ -191,13 +192,12 @@ namespace Terrain
 
             effect.Parameters["xTexture"].SetValue(terrainManager.TerrainTextures);
 
-            //draw triangles
+            //*************DRAW COLOURED VERTICES************/
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 device.Indices = indexBuffer;
                 device.SetVertexBuffer(vertexBuffer);
-                //device.SetVertexBuffer(texturedBuffer);
                 int numOfPrims = 32;
                 int size = terrainManager.TerrainWidth-1; //width -1.
                 for(int c = 0; c < 16 * size; c+=size)
@@ -211,6 +211,7 @@ namespace Terrain
 
             }
 
+            /**********DRAW TEXTURED VERTICES************************/
             /*effect.CurrentTechnique = effect.Techniques["TexturedNoShading"];*/
 
             // foreach (EffectPass pass in effect.CurrentTechnique.Passes)
@@ -222,13 +223,16 @@ namespace Terrain
             // }
 
 
-            /*spriteBatch.Begin();
-            spriteBatch.DrawString(arielFont, 
-                seasonController.Day + " " 
-                + seasonController.CurrentMonth + " " 
-                + seasonController.CurrentSeason, 
-                new Vector2(0, 0), Color.White);
-            spriteBatch.End();*/
+            /***************DRAW 2D*****************/
+            //spriteBatch.Begin();
+            //spriteBatch.DrawString(arielFont, 
+            //    seasonController.Day + " " 
+            //    + seasonController.CurrentMonth + " " 
+            //    + seasonController.CurrentSeason, 
+            //    new Vector2(0, 0), Color.White);
+            //spriteBatch.Draw(terrainManager.HeightMap, new Vector2(400, 320), Color.White);
+            //spriteBatch.End();
+
 
             base.Draw(gameTime);
         }
