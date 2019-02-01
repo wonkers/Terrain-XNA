@@ -12,54 +12,121 @@ namespace Terrain
         public int TerrainWidth { get; set; }
         public int TerrainHeight { get; set; }
         public VertexPositionColorNormal[] Vertices { get; set; }
-        public int[] Indices { get; set; }
+        public short[] Indices { get; set; }
         public Texture2D HeightMap { get; set; }
-        public Texture2D TreeMap { get; set; }
 
+        //textured stuff
+        public Texture2D TerrainTextures { get; set; }
+        public List<VertexPositionNormalTexture> textureList { get; set; }
+
+        //height stuff
         public float[,] HeightData;
-        public List<Vector3> TreePositions;
+
 
         public TerrainManager()
         {
-
+            textureList = new List<VertexPositionNormalTexture>();
         }
         public void Load(GraphicsDevice device, ContentManager Content)
         {
-            HeightMap = Content.Load<Texture2D>("heightmap");
-            TreeMap = Content.Load<Texture2D>("treemap");
+            HeightMap = Content.Load<Texture2D>("heightmap"); //128 * 128
+            //HeightMap = Content.Load<Texture2D>("heightmap2"); //32 * 32
+            TerrainTextures = Content.Load<Texture2D>("terrainTextures");
 
             LoadHeightData(HeightMap);
             SetUpVertices();
-            //LoadTreeData(TreeMap);
             SetUpIndices();
             CalculateNormals();
-            //CopyToBuffers(device);
         }
-
+        private int LowerOrHigher(int x, int y)
+        {
+            return 0;
+        }
         private void SetUpVertices()
         {
             Vertices = new VertexPositionColorNormal[TerrainWidth * TerrainHeight];
-            for (int x = 0; x < TerrainWidth; x++)
+
+            int numberOfTextures = 3;
+            int divider = 2;
+            for (int y = 0; y < TerrainHeight; y++)
             {
-                for (int y = 0; y < TerrainHeight; y++)
+                for (int x= 0; x < TerrainWidth; x++)
                 {
                     //change the divider to heighData[x, y] to reduce hill sizes
-                    Vertices[x + y * TerrainWidth].Position = new Vector3(x, (HeightData[x, y]) / 3, -y);
+                    Vertices[x + y * TerrainWidth].Position = new Vector3(x, (HeightData[x, y]) / divider, -y);
+                    WaterSand(x + y * TerrainWidth);
+                  
+                    if (x != 0 && x != TerrainWidth - 1 && y != TerrainHeight-1)
+                    {
+                        /********************FIRST TRIANGLE*************************************************/
+                        if (HeightData[x, y] == 0 && HeightData[x, y + 1] == 0 && HeightData[x + 1, y] == 0)
+                        {
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y] / divider, -y), new Vector3(0,1,0), new Vector2(1f / numberOfTextures, 0)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y+1] / divider, -y-1), new Vector3(0, 1, 0), new Vector2(1f / numberOfTextures, 1)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x+1, HeightData[x+1, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(2f / numberOfTextures, 1)));
+                        }
+                        else if(HeightData[x, y] == 0 || HeightData[x, y + 1] == 0 || HeightData[x + 1, y] == 0)
+                        {
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(2f / numberOfTextures, 0)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y+1] / divider, -y-1), new Vector3(0, 1, 0), new Vector2(2f / numberOfTextures, 1)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x+1, HeightData[x+1, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(3f / numberOfTextures, 1)));
+                        }
+                        else
+                        {
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(0f / numberOfTextures, 0)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y+1] / divider, -y-1), new Vector3(0, 1, 0), new Vector2(0f / numberOfTextures, 1)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x+1, HeightData[x+1, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(1f / numberOfTextures, 1)));
+                        }
+
+
+                        /*************************SECOND TRIANGLE**********************************************/
+                        if ((HeightData[x, y + 1] == 0 && HeightData[x + 1, y + 1] == 0 && HeightData[x + 1, y] == 0))
+                        {
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y + 1] / divider, -y - 1), new Vector3(0, 1, 0), new Vector2(1f / numberOfTextures, 0)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x+1, HeightData[x+1, y + 1] / divider, -y - 1), new Vector3(0, 1, 0), new Vector2(2f / numberOfTextures, 1)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x+1, HeightData[x+1, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(2f / numberOfTextures, 0)));
+                        }
+                        else if((HeightData[x, y + 1] == 0 || HeightData[x + 1, y + 1] == 0 || HeightData[x + 1, y] == 0))
+                        {
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y + 1] / divider, -y - 1), new Vector3(0, 1, 0), new Vector2(2f / numberOfTextures, 0)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x + 1, HeightData[x + 1, y + 1] / divider, -y - 1), new Vector3(0, 1, 0), new Vector2(3f / numberOfTextures, 1)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x + 1, HeightData[x + 1, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(3f / numberOfTextures, 0)));
+                        }
+                        else
+                        {
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y + 1] / divider, -y - 1), new Vector3(0, 1, 0), new Vector2(0f / numberOfTextures, 0)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x + 1, HeightData[x + 1, y + 1] / divider, -y - 1), new Vector3(0, 1, 0), new Vector2(1f / numberOfTextures, 1)));
+                            textureList.Add(new VertexPositionNormalTexture(new Vector3(x + 1, HeightData[x + 1, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(1f / numberOfTextures, 0)));
+                        }
+                        /**************************************************************************************/
+                        
+                    }
+                    else
+                    {
+                        textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(1f / numberOfTextures, 0)));
+                        textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y] / divider, -y - 1), new Vector3(0, 1, 0), new Vector2(1f / numberOfTextures, 1)));
+                        textureList.Add(new VertexPositionNormalTexture(new Vector3(x + 1, HeightData[x, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(2f / numberOfTextures, 1)));
+
+                        textureList.Add(new VertexPositionNormalTexture(new Vector3(x, HeightData[x, y] / divider, -y - 1), new Vector3(0, 1, 0), new Vector2(1f / numberOfTextures, 0)));
+                        textureList.Add(new VertexPositionNormalTexture(new Vector3(x + 1, HeightData[x, y] / divider, -y - 1), new Vector3(0, 1, 0), new Vector2(2f / numberOfTextures, 1)));
+                        textureList.Add(new VertexPositionNormalTexture(new Vector3(x + 1, HeightData[x, y] / divider, -y), new Vector3(0, 1, 0), new Vector2(2f / numberOfTextures, 0)));
+                    }
+              
                 }
             }
         }
         private void SetUpIndices()
         {
-            Indices = new int[(TerrainWidth - 1) * (TerrainHeight - 1) * 6];
+            Indices = new short[(TerrainWidth - 1) * (TerrainHeight - 1) * 6];
             int counter = 0;
             for (int y = 0; y < TerrainHeight - 1; y++)
             {
                 for (int x = 0; x < TerrainWidth - 1; x++)
                 {
-                    int lowerLeft = x + y * TerrainWidth;
-                    int lowerRight = (x + 1) + y * TerrainWidth;
-                    int topLeft = x + (y + 1) * TerrainWidth;
-                    int topRight = (x + 1) + (y + 1) * TerrainWidth;
+                    short lowerLeft = (short)(x + y * TerrainWidth);
+                    short lowerRight = (short)((x + 1) + y * TerrainWidth);
+                    short topLeft = (short)(x + (y + 1) * TerrainWidth);
+                    short topRight = (short)((x + 1) + (y + 1) * TerrainWidth);
 
                     Indices[counter++] = topLeft;
                     Indices[counter++] = lowerRight;
@@ -71,19 +138,24 @@ namespace Terrain
                 }
             }
         }
-
-        private void LoadTreeData(Texture2D treeMap)
+        
+        private void WaterSand(int position)
         {
-            Color[] treeMapColors = new Color[TerrainWidth * TerrainHeight];
-            treeMap.GetData(treeMapColors);
-            TreePositions = new List<Vector3>();//[TerrainWidth * TerrainHeight];
-            for (int x = 0; x < TerrainWidth; x++)
-                for (int y = 0; y < TerrainHeight; y++)
-                    if ((treeMapColors[x + y * TerrainWidth].R / 255) == 1)
-                    {
-                        TreePositions.Add(new Vector3(x, Vertices[x + y * TerrainWidth].Position.Y, y));
-                    }
-         }
+            if (Vertices[position].Position.Y == 0)
+                Vertices[position].Color = Color.Blue;
+            else if (Vertices[position].Position.Y < 1)
+                Vertices[position].Color = Color.SandyBrown;
+            else
+                Vertices[position].Color = new Color(SeasonController.SeasonColour[0],
+                                SeasonController.SeasonColour[1],
+                                SeasonController.SeasonColour[2],
+                                SeasonController.SeasonColour[3]);
+
+            
+            
+        }
+
+        
 
         private void LoadHeightData(Texture2D heightMap)
         {
@@ -96,11 +168,27 @@ namespace Terrain
             HeightData = new float[TerrainWidth, TerrainHeight];
             for (int x = 0; x < TerrainWidth; x++)
                 for (int y = 0; y < TerrainHeight; y++)
-                    HeightData[y, x] = (heightMapColors[x + y * TerrainWidth].G) / 24;
+                    HeightData[y, x] = (heightMapColors[x + y * TerrainWidth].G) / 64;
         }
 
         private void CalculateNormals()
         {
+            /*int length = Vertices.Length - 3;
+            for (int i = 0; i < length; i++)
+            {
+                
+                Vector3 a, b, c, Normal;
+                a = Vertices[i].Position - Vertices[i + 2].Position;
+                b = Vertices[i + 1].Position - Vertices[i].Position;
+                c = Vertices[i + 1].Position - Vertices[i + 2].Position;
+
+                Normal = Vector3.Cross(a, c);
+
+                for (int it = i; i < i + 3; i++) 
+                    Vertices[i].Normal += Normal;
+                for (int it = i; i < i + 3; i++)
+                    Vertices[i].Normal.Normalize();
+            }*/
             for (int i = 0; i < Vertices.Length; i++)
                 Vertices[i].Normal = new Vector3(0, 0, 0);
 
@@ -121,16 +209,11 @@ namespace Terrain
 
             for (int i = 0; i < Vertices.Length; i++)
                 Vertices[i].Normal.Normalize();
+
+            
         }
 
-        private void CopyToBuffers(GraphicsDevice device)
-        {
-            vertexBuffer = new VertexBuffer(device, VertexPositionColorNormal.VertexDeclaration, Vertices.Length, BufferUsage.WriteOnly);
-            vertexBuffer.SetData(Vertices);
 
-            indexBuffer = new IndexBuffer(device, typeof(int), Indices.Length, BufferUsage.WriteOnly);
-            indexBuffer.SetData(Indices);
-        }
     }
     
 }

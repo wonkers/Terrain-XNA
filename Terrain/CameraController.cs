@@ -12,7 +12,7 @@ namespace Terrain
             //Position = new Vector3(-68.5f, 8, 68.5f);
 
             //slightly to the side view
-            Position = new Vector3(-59, 10, 74);
+            Position = new Vector3(-10, 10, 10);
 
             MapPosition = new Vector2(0, 0);
         }

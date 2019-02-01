@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +25,7 @@ namespace Terrain
         public Month CurrentMonth { get; set; }
         public static float[] SeasonColour { get; set; }
         public int Day { get; set; }
-
+        public int Time { get; set; }
         
         public SeasonController()
         {
@@ -32,63 +33,69 @@ namespace Terrain
             CurrentMonth = Month.May;
             SeasonColour = new float[4] { 0.13f, 0.58f, 0.2f, 0.0f };
             Day = 121;
+            Time = 0;
         }
 
         public void Update()
         {
-            Day++;
-            if (Day > 360) Day = 1;
-            CurrentMonth = (Month)((int)Day / 30);
-
-            switch (CurrentMonth)
+            Time++;
+            if (Time > 239)
             {
-                case Month.February:
-                case Month.March:
-                case Month.April:
-                    CurrentSeason = Season.Winter;
-                    break;
-                case Month.May:
-                case Month.June:
-                case Month.July:
-                    CurrentSeason = Season.Spring;
-                    break;
-                case Month.August:
-                case Month.September:
-                case Month.October:
-                    CurrentSeason = Season.Summer;
-                    break;
-                case Month.November:
-                case Month.December:
-                case Month.January:
-                    CurrentSeason = Season.Autumn;
-                    break;
-            }
-            //0.004 = 1 from(256)
-            switch(CurrentSeason)
-            {
-                case Season.Spring:
-                    SeasonColour[0] += 0.0086f;
-                    SeasonColour[1] += 0.0037f;
-                    SeasonColour[2] += 0.0028f;
-                    break;
-                case Season.Summer:
-                    SeasonColour[0] -= 0.0086f;
-                    SeasonColour[1] -= 0.0037f;
-                    SeasonColour[2] -= 0.0028f;
-                    break;
-                case Season.Autumn:
-                    SeasonColour[0] += 0.0074f;
-                    SeasonColour[1] += 0.0037f;
-                    SeasonColour[2] += 0.0067f;
-                    break;
-                case Season.Winter:
-                    SeasonColour[0] -= 0.0074f;
-                    SeasonColour[1] -= 0.0037f;
-                    SeasonColour[2] -= 0.0067f;
-                    break;
+                Time = 0;
+                Day++;
 
+                if (Day > 360) Day = 1;
+                CurrentMonth = (Month)((int)Day / 30);
+
+                switch (CurrentMonth)
+                {
+                    case Month.February:
+                    case Month.March:
+                    case Month.April:
+                        CurrentSeason = Season.Winter;
+                        break;
+                    case Month.May:
+                    case Month.June:
+                    case Month.July:
+                        CurrentSeason = Season.Spring;
+                        break;
+                    case Month.August:
+                    case Month.September:
+                    case Month.October:
+                        CurrentSeason = Season.Summer;
+                        break;
+                    case Month.November:
+                    case Month.December:
+                    case Month.January:
+                        CurrentSeason = Season.Autumn;
+                        break;
+                }
+                //0.004 = 1 from(256)
+                switch (CurrentSeason)
+                {
+                    case Season.Spring:
+                        SeasonColour[0] += 0.0086f;
+                        SeasonColour[1] += 0.0037f;
+                        SeasonColour[2] += 0.0028f;
+                        break;
+                    case Season.Summer:
+                        SeasonColour[0] -= 0.0086f;
+                        SeasonColour[1] -= 0.0037f;
+                        SeasonColour[2] -= 0.0028f;
+                        break;
+                    case Season.Autumn:
+                        SeasonColour[0] += 0.0074f;
+                        SeasonColour[1] += 0.0037f;
+                        SeasonColour[2] += 0.0067f;
+                        break;
+                    case Season.Winter:
+                        SeasonColour[0] -= 0.0074f;
+                        SeasonColour[1] -= 0.0037f;
+                        SeasonColour[2] -= 0.0067f;
+                        break;
+
+                }
             }
-            
         }
     }
 }
